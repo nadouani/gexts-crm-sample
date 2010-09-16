@@ -1,0 +1,250 @@
+<% import grails.persistence.Event %>
+<% import org.codehaus.groovy.grails.scaffolding.DomainClassPropertyComparator %>
+
+<%  
+	if (property.type == Boolean.class || property.type == boolean.class)
+		out << renderBooleanEditor(domainClass, property)
+		
+	else if (Number.class.isAssignableFrom(property.type) || (property.type.isPrimitive() && property.type != boolean.class))
+		out << renderNumberEditor(domainClass, property)
+		
+	else if (property.type == String.class || property.type == URL.class)
+		out << renderStringEditor(domainClass, property)
+		
+	else if (property.type == Date.class || property.type == java.sql.Date.class || property.type == java.sql.Time.class || property.type == Calendar.class)
+		out << renderDateEditor(domainClass, property)
+		
+	else if (property.isEnum())
+		out << renderEnumEditor(domainClass, property)
+		
+	else if (property.manyToOne || property.oneToOne)
+		out << renderManyToOne(domainClass, property)
+		
+	else if ((property.oneToMany && !property.bidirectional) || (property.manyToMany && property.isOwningSide()))
+		out << renderManyToMany(domainClass, property)
+		
+	else if (property.oneToMany)
+		out << renderOneToMany(domainClass, property)
+		
+	else	
+		out << renderTextFieldEditor(domainClass, property)
+
+
+	// Render unhandled type of data	
+	private renderTextFieldEditor(domainClass, property) {
+		def sb = new StringBuffer()
+		
+		sb << "{"
+		sb << "xtype: 'textfield',"
+		sb << "name: '${property.name}',"
+		sb << "fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />',"
+		sb << "anchor: '100%'"
+		sb << "}, "
+		
+		return sb.toString()
+    }
+	
+	// Render enum field's editor
+	private renderEnumEditor(domainClass, property){
+		def sb = new StringBuffer()
+		sb << "{xtype:'combo', "
+		sb << "store:<extjsUtils:array data=\"\${${property.type.name}?.values()}\"/>, "
+		sb << "name:'${property.name}', "
+		sb << "fieldLabel:'<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />', "
+		sb << "triggerAction:'all', "
+		sb << "emptyText:'Select a <g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />...', "
+		sb << "editable:false,"
+		
+		// Client side validation for string values
+		if (!cp.blank || !cp.nullable) sb << "allowBlank: false, "
+		
+		sb << "}, "
+		return sb.toString()
+	}
+
+	// Render boolean field's input
+	private renderBooleanEditor(domainClass, property) {
+		def sb = new StringBuffer()
+		
+		sb << "{xtype: 'checkbox',"
+		sb << "name: '${property.name}',"
+		sb << "fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />',"
+		sb << "}, "
+		
+		return sb.toString()
+	}
+	
+	// Render number field's input
+	private renderNumberEditor(domainClass, property) {
+		if (!cp) {
+			if (property.type == Byte.class) {
+				return "{xtype: 'numberfield', name: '${property.name}', fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />', decimalPrecision:0, maxValue:127, minValue:-128}, "
+			}
+			else {
+				return "{xtype: 'numberfield', name: '${property.name}', fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />'}, "
+			}
+		}
+		else {
+			def sb = new StringBuffer()
+			sb << "{"			
+			
+			if (cp.range) {
+				sb << "xtype: 'spinnerfield',"
+				sb << "name: '${property.name}',"
+				sb << "fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />',"
+				sb << "decimalPrecision:0,"
+				sb << "maxValue:${cp.range.to},"
+				sb << "minValue:${cp.range.from},"
+			}
+			else if (cp.inList) {
+				sb << "xtype:'combo', "
+				sb << "store: \${${domainInstance}.constraints.${property.name}.inList},"
+				sb << "name: '${property.name}',"
+				sb << "fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />',"
+				sb << "triggerAction:'all',"
+				sb << "emptyText:'Select a <g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />...',"
+				sb << "editable:false,"
+			}            
+			else {
+				sb << "xtype: 'numberfield',"
+				sb << "name: '${property.name}',"
+				sb << "fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />',"
+			
+				// Client side validation for max and min number values
+				if (cp.max) sb << "maxValue: '${cp.max}', "
+				if (cp.min) sb << "minValue: '${cp.min}', "
+			}
+
+			// Client side validation for number values
+			if (!cp.nullable) sb << "allowBlank: false, "
+			if (cp.scale) sb << "decimalPrecision: '${cp.scale}', "
+			
+			sb << "},"
+
+			return sb.toString()
+		}
+	}
+
+	// Render string field's input
+	private renderStringEditor(domainClass, property) {
+		if (!cp) {
+			return "{xtype: 'textfield', name: '${property.name}', fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />'}, "
+		}
+		else {
+			if ("textarea" == cp.widget || (cp.maxSize > 250 && !cp.password && !cp.inList)) {
+				return "{xtype: 'textarea', name: '${property.name}', fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />'}, "
+			}
+			else {
+				if (cp.inList) {
+					def sb = new StringBuffer()
+					sb << "{xtype:'combo', "
+					sb << "store:<extjsUtils:array data=\"\${${domainInstance}.constraints.${property.name}.inList}\"/>, "
+					sb << "name:'${property.name}', "
+					sb << "fieldLabel:'<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />', "
+					sb << "triggerAction:'all', "
+					sb << "emptyText:'Select a <g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />...', "
+					sb << "editable:false,"
+					
+					// Client side validation for string values
+					if (!cp.blank || !cp.nullable) sb << "allowBlank: false, "
+					
+					sb << "}, "
+					return sb.toString()
+				} else if(cp.widget && cp.widget == "htmlEditor"){
+					return "{xtype:'htmleditor', name:'${property.name}', fieldLabel:'<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />', height:200,anchor:'98%'}, "
+				}else {
+					def sb = new StringBuffer("{xtype: 'textfield', name: '${property.name}', ")
+					sb << "fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />', "
+					
+					// Client side validation for string values
+					if (!cp.blank || !cp.nullable) sb << "allowBlank: false, "
+					if (cp.password) sb << "inputType: 'password', "
+					if (cp.maxSize) sb << "maxLength: '${cp.maxSize}', "
+					if (cp.minSize) sb << "minLength: '${cp.minSize}', "
+					if (!cp.editable) sb << "readonly: true, "
+					if (cp.email) sb << "vtype: 'email', "
+					if (cp.url || property.type == URL.class) sb << "vtype: 'url', "
+					
+					sb << "}, "
+					return sb.toString()
+				}
+			}
+		}
+	}
+	
+	private renderDateEditor(domainClass, property) {
+		if (!cp) {
+			return "{xtype: 'datefield', name: '${property.name}', fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />'}, "
+		}
+		else {
+			def sb = new StringBuffer("{xtype: 'datefield', name: '${property.name}', fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />', ")
+			
+			// Client side validation for string values
+			if (!cp.blank || !cp.nullable) sb << "allowBlank: false, "
+			if (!cp.editable) sb << "readOnly: true, "
+			
+			sb << "}, "
+			return sb.toString()
+		}
+	}
+
+	private renderManyToOne(domainClass, property){
+		if (property.association) {
+			def sb = new StringBuffer();
+			
+			sb << "new Ext.Grails.ux.RowSelectorField({"
+			sb << "\n\tdialogTitle:'Select a ${property.referencedDomainClass.propertyName}...',"
+			sb << "\n\tfieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />',"
+			sb << "\n\tname: '${property.name}.id',"
+			sb << "\n\tdisplayProperty : 'toString',"
+			sb << "\n\tform: this,"
+			sb << "\n\turlList: '<g:resource dir=\"${property.referencedDomainClass.propertyName}\" file=\"list\" />'"
+			sb << "\n}),"
+			
+			return sb.toString()
+		}
+	}
+	
+	private renderManyToMany(domainClass, property){
+		return "{value:'renderManyToMany', xtype: 'textfield', name: '${property.name}', fieldLabel: '<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />', anchor: '100%'}, "
+	}
+	
+	private renderOneToMany(domainClass, property){
+		def sb = new StringBuffer()
+		def fields = "\n\t\t"
+		def cols = ""
+		
+		// loop on properties
+		//{header: '<g:message code="animal.id.label" default="Id" />', dataIndex: 'id', width: 50, sortable: true},      
+		def excludedProps = Event.allEvents.toList() << 'version'
+		def props = property.referencedDomainClass.properties.findAll { !excludedProps.contains(it.name) && !it.isAssociation()}		
+    	Collections.sort(props, DomainClassPropertyComparator.class.constructors[0].newInstance([property.referencedDomainClass] as Object[]))
+    	
+    	props.each { p -> 
+        	def cp = property.referencedDomainClass.constrainedProperties[p.name]
+            def display = (cp ? cp.display : true)        
+            if (display) {
+				fields += "{name: '${p.name}'}," 
+            	cols += "\n\t\t{header: '<g:message code=\"${property.referencedDomainClass.propertyName}.${p.name}.label\" default=\"${p.naturalName}\" />', dataIndex: '${p.name}', width: 50, sortable: true},"      	
+        	}
+        }
+		
+		sb << "this.grid${domainClass.shortName}${property.referencedDomainClass.shortName} = new Ext.Grails.ux.EntityCollectionGridPanel({"
+		sb << "\n\ttitle:'<g:message code=\"${domainClass.propertyName}.${property.name}.label\" default=\"${property.naturalName}\" />',"
+		sb << "\n\turlSelect: '<g:resource dir=\"${property.referencedDomainClass.propertyName}\" file=\"list\" />',"
+		sb << "\n\troot : '${property.name}',"
+		sb << "\n\tnewButtonLabel : '<g:message code=\"default.button.new.label\" default=\"New\" /> ${property.referencedDomainClass.shortName}',"
+		sb << "\n\tdeleteButtonLabel : '<g:message code=\"default.button.delete.label\" default=\"Delete\" /> ${property.referencedDomainClass.shortName}',"
+		sb << "\n\tselectButtonLabel : '<g:message code=\"default.button.select.label\" default=\"Select\" /> ${property.referencedDomainClass.shortName}',"
+		sb << "\n\tfields : ["
+		sb << fields
+		sb << "\n\t],"
+		sb << "\n\tcols : ["
+		sb << cols
+		sb << "\n\t]"
+		sb << "\n}),"
+		
+		return sb.toString()
+	}
+
+%>
