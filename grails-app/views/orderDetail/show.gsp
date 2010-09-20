@@ -46,7 +46,7 @@
                         <tr class="prop">
                             <td valign="top" class="name"><g:message code="orderDetail.order.label" default="Order" /></td>
                             
-                            <td valign="top" class="value"><g:link controller="order" action="show" id="${orderDetailInstance?.order?.id}">${orderDetailInstance?.order?.encodeAsHTML()}</g:link></td>
+                            <td valign="top" class="value"><g:link controller="productOrder" action="show" id="${orderDetailInstance?.order?.id}">${orderDetailInstance?.order?.encodeAsHTML()}</g:link></td>
                             
                         </tr>
                     

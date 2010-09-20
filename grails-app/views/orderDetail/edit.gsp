@@ -70,12 +70,12 @@ new Ext.Grails.ux.RowSelectorField({
 
 
 new Ext.Grails.ux.RowSelectorField({
-	dialogTitle:'Select a order...',
+	dialogTitle:'Select a productOrder...',
 	fieldLabel: '<g:message code="orderDetail.order.label" default="Order" />',
 	name: 'order.id',
 	displayProperty : 'toString',
 	form: this,
-	urlList: '<g:resource dir="order" file="list" />'
+	urlList: '<g:resource dir="productOrder" file="list" />'
 }),
                                 </td>
                             </tr>

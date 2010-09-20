@@ -119,7 +119,7 @@
                             <td valign="top" style="text-align: left;" class="value">
                                 <ul>
                                 <g:each in="${customerInstance.orders}" var="o">
-                                    <li><g:link controller="order" action="show" id="${o.id}">${o?.encodeAsHTML()}</g:link></li>
+                                    <li><g:link controller="productOrder" action="show" id="${o.id}">${o?.encodeAsHTML()}</g:link></li>
                                 </g:each>
                                 </ul>
                             </td>

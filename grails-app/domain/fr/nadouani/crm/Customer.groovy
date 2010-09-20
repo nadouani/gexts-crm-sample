@@ -17,7 +17,7 @@ class Customer {
 	String fax
 	String homePage
 	
-	static hasMany = [orders: Order]
+	static hasMany = [orders: ProductOrder]
 	
 	static constraints = {
 		company(nullable: false, blank:false)
