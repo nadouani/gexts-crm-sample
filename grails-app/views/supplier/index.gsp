@@ -68,30 +68,37 @@
 
     Ext.extend($cls, Ext.Grails.ux.EntityGridPanel, { 
    		createFn: function(){
-			var formTab = new GrailsApp.ext.form.SupplierForm({
+			var createDialog = new GrailsApp.ext.dialog.SupplierDialog({
 				title : '<g:message code="default.new.label" args="[entityLabel]" />',
 				closable: true,
-				actionName : 'create',				
-				callerComponent: Ext.getCmp('tabListSupplier')
+				actionName : 'create',
+				listeners: {
+	        		onSaved: function(dialog, formPanel){
+	        			this.store.load();
+	        		},
+	        		scope:this
+	        	}
 			});
-			
-			var tabs = Ext.getCmp("content-panel");
-			tabs.add(formTab).show();
+			createDialog.show();
     	},
     	
     	rowDblClickFn: function(grid, rowIndex, e) {
 			var record = grid.getStore().getAt(rowIndex);
 			
-			var formTab = new GrailsApp.ext.form.SupplierForm({
+	        var editDialog = new GrailsApp.ext.dialog.SupplierDialog({
 	        	title : '<g:message code="default.button.edit.label" default="Edit" /> Supplier',
 	        	closable: true,
+	        	modale: true,
 	        	actionName : 'edit',
 	        	entityId: record.data.id,
-	        	callerComponent: Ext.getCmp('tabListSupplier')
+	        	listeners: {
+	        		onSaved: function(dialog, formPanel){
+	        			this.store.load();
+	        		},
+	        		scope:this
+	        	}
 	        });
-	        
-	        var tabs = Ext.getCmp("content-panel");
-	        tabs.add(formTab).show();
+	        editDialog.show();
 		}
     });
     

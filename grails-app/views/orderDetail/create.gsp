@@ -3,27 +3,33 @@
 
 (function(){
     
-    Ext.ns('GrailsApp.ext.form');
+    Ext.ns('GrailsApp.ext.dialog');
     
-    var $cls = GrailsApp.ext.form.OrderDetailForm = function(cfg){
+    var $cls = GrailsApp.ext.dialog.OrderDetailDialog = function(cfg){
     	
         $cls.superclass.constructor.call(this, Ext.apply({
         	urlSave: '<g:resource dir="orderDetail" file="save" />',
 		    urlUpdate: '<g:resource dir="orderDetail" file="update" />',
 		    urlEdit: '<g:resource dir="orderDetail" file="edit" />',
-		    items: [
-				
-		        
+			tabs:[
+		    	{
+		    		xtype: 'panel',
+		    		layout: 'form',
+		    		title: 'Details',
+		    		bodyStyle: 'padding: 5px',
+		    		items:[
+		    			
+				        
 
 
 {xtype: 'numberfield', name: 'id', fieldLabel: '<g:message code="orderDetail.id.label" default="Id" />'}, 
-		    	
-		        
+				    	
+				        
 
 
 {xtype: 'numberfield',name: 'quantity',fieldLabel: '<g:message code="orderDetail.quantity.label" default="Quantity" />',allowBlank: false, },
-		    	
-		        
+				    	
+				        
 
 
 new Ext.Grails.ux.RowSelectorField({
@@ -34,8 +40,8 @@ new Ext.Grails.ux.RowSelectorField({
 	form: this,
 	urlList: '<g:resource dir="product" file="list" />'
 }),
-		    	
-		        
+				    	
+				        
 
 
 new Ext.Grails.ux.RowSelectorField({
@@ -46,15 +52,17 @@ new Ext.Grails.ux.RowSelectorField({
 	form: this,
 	urlList: '<g:resource dir="productOrder" file="list" />'
 }),
-		    				    	
-		    						
-			],
+				    	
+		    		]
+		    	},
+		    	
+		    ],
 			loadSuccess: this.loadSuccess
         },cfg));
         
     };
 
-    Ext.extend($cls, Ext.Grails.ux.EntityFormPanel, { 
+    Ext.extend($cls, Ext.Grails.ux.EntityFormDialog, { 
     	loadSuccess: function(form, action){
     		
     	}

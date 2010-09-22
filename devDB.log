@@ -3,9 +3,11 @@ CONNECT USER SA
 DISCONNECT
 /*C4*/SET SCHEMA PUBLIC
 CONNECT USER SA
+alter table order_detail drop constraint FK23AE5A623FFB65E2
 alter table order_detail drop constraint FK23AE5A623B4EB663
 alter table product drop constraint FKED8DCCEF21EB2B11
 alter table product drop constraint FKED8DCCEF42EF5051
+alter table product_order drop constraint FK526407FE4A82E01C
 drop table category if exists
 drop table customer if exists
 drop table order_detail if exists
@@ -23,5 +25,3 @@ alter table order_detail add constraint FK23AE5A623B4EB663 foreign key (product_
 alter table product add constraint FKED8DCCEF21EB2B11 foreign key (category_id) references category
 alter table product add constraint FKED8DCCEF42EF5051 foreign key (supplier_id) references supplier
 alter table product_order add constraint FK526407FE4A82E01C foreign key (owner_id) references customer
-/*C5*/SET SCHEMA PUBLIC
-CONNECT USER SA

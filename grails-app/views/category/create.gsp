@@ -3,40 +3,45 @@
 
 (function(){
     
-    Ext.ns('GrailsApp.ext.form');
+    Ext.ns('GrailsApp.ext.dialog');
     
-    var $cls = GrailsApp.ext.form.CategoryForm = function(cfg){
+    var $cls = GrailsApp.ext.dialog.CategoryDialog = function(cfg){
     	
         $cls.superclass.constructor.call(this, Ext.apply({
         	urlSave: '<g:resource dir="category" file="save" />',
 		    urlUpdate: '<g:resource dir="category" file="update" />',
 		    urlEdit: '<g:resource dir="category" file="edit" />',
-		    items: [
-				
-		        
+			tabs:[
+		    	{
+		    		xtype: 'panel',
+		    		layout: 'form',
+		    		title: 'Details',
+		    		bodyStyle: 'padding: 5px',
+		    		items:[
+		    			
+				        
 
 
 {xtype: 'numberfield', name: 'id', fieldLabel: '<g:message code="category.id.label" default="Id" />'}, 
-		    	
-		        
+				    	
+				        
 
 
 {xtype: 'textfield', name: 'name', fieldLabel: '<g:message code="category.name.label" default="Name" />', allowBlank: false, }, 
-		    	
-		        
+				    	
+				        
 
 
 {xtype: 'textfield', name: 'description', fieldLabel: '<g:message code="category.description.label" default="Description" />', allowBlank: false, }, 
-		    	
-		        
+				    	
+				        
 
 
 {xtype: 'textfield', name: 'picture', fieldLabel: '<g:message code="category.picture.label" default="Picture" />', allowBlank: false, }, 
-		    				    	
+				    	
+		    		]
+		    	},
 		    	
-		    	{xtype: 'tabpanel', activeItem:0,height:200,
-			    	items:[
-			    
 
 
 this.gridCategoryProduct = new Ext.Grails.ux.EntityCollectionGridPanel({
@@ -59,18 +64,16 @@ this.gridCategoryProduct = new Ext.Grails.ux.EntityCollectionGridPanel({
 		{header: '<g:message code="product.unitsInStock.label" default="Units In Stock" />', dataIndex: 'unitsInStock', width: 50, sortable: true},
 	]
 }),
-			    	]}
-		    						
-			],
+		    ],
 			loadSuccess: this.loadSuccess
         },cfg));
         
     };
 
-    Ext.extend($cls, Ext.Grails.ux.EntityFormPanel, { 
+    Ext.extend($cls, Ext.Grails.ux.EntityFormDialog, { 
     	loadSuccess: function(form, action){
     		
-			Ext.getCmp('gridCategoryProduct').store.loadData(action.result.data);
+			this.gridCategoryProduct.store.loadData(action.result.data);
 			
     	}
     });
